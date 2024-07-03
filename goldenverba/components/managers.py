@@ -241,9 +241,11 @@ class RetrieverManager:
         @parameter: embedder : Embedder - Current selected Embedder
         @returns list[Chunk] - List of retrieved chunks.
         """
+        print("before retrieving chunks")
         chunks, context = self.retrievers[self.selected_retriever].retrieve(
             queries, client, embedder
         )
+        print("after retrieving chunks")
         managed_context = self.retrievers[self.selected_retriever].cutoff_text(
             context, generator.context_window
         )

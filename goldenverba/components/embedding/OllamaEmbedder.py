@@ -3,6 +3,8 @@ from weaviate import Client
 import os
 import requests
 import json
+import logging
+import runpod
 
 from goldenverba.components.interfaces import Embedder
 from goldenverba.components.document import Document
@@ -18,6 +20,12 @@ class OllamaEmbedder(Embedder):
         self.vectorizer = "OLLAMA"
         self.url = os.environ.get("OLLAMA_URL", "")
         self.model = os.environ.get("OLLAMA_MODEL", "")
+        self.endpoint = os.environ.get("RUNPOD_ENDPOINT", "")
+
+        logging.basicConfig(level=logging.DEBUG)
+        runpod.api_key = os.environ.get("RUNPOD_API_KEY","")
+
+
 
     def embed(
         self,
@@ -42,11 +50,28 @@ class OllamaEmbedder(Embedder):
     def vectorize_chunk(self, chunk) -> list[float]:
         try:
             embeddings = []
-            embedding_url = self.url + "/api/embeddings"
-            data = {"model": self.model, "prompt": chunk}
-            response = requests.post(embedding_url, json=data)
-            json_data = json.loads(response.text)
-            embeddings = json_data.get("embedding", [])
+            # embedding_url = self.url + "/api/embeddings"
+            # data = {"model": self.model, "prompt": chunk}
+
+            #new format for runpod ollama
+            print(f'chunks {chunk}')
+            data = {
+                    "input": {
+                        "method_name": "embeddings",
+                        "input": {
+                        "prompt": chunk
+                        }
+                    }
+                    }
+            
+            endpoint = runpod.Endpoint(self.endpoint)
+            response = endpoint.run_sync(data,timeout=120)
+
+
+            # response = requests.post(url, json=data, headers=headers)
+            # print(response)
+            # print(f'response from ollama embedder: {response}')
+            embeddings = response.get("embedding", [])
             return embeddings
 
         except Exception:

@@ -1,7 +1,10 @@
 import os
 
 import json
+import asyncio
 import aiohttp
+import runpod
+import logging
 
 from goldenverba.components.interfaces import Generator
 
@@ -14,6 +17,10 @@ class OllamaGenerator(Generator):
         self.requires_env = ["OLLAMA_URL", "OLLAMA_MODEL"]
         self.streamable = True
         self.context_window = 10000
+        self.endpoint = os.environ.get("RUNPOD_ENDPOINT", "")
+        runpod.api_key = os.environ.get("RUNPOD_API_KEY","")
+        logging.basicConfig(level=logging.DEBUG)
+
 
     async def generate_stream(
         self,
@@ -36,35 +43,105 @@ class OllamaGenerator(Generator):
                 "finish_reason": "stop",
             }
 
-        url += "/api/chat"
+        #disabled when calling through runpod ollama, endpoint determined through "method_name" field in json request
+        # url += "/api/chat"
 
         if conversation is None:
             conversation = {}
         messages = self.prepare_messages(queries, context, conversation)
 
         try:
-            data = {"model": model, "messages": messages}
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=data) as response:
-                    async for line in response.content:
-                        if line.strip():  # Ensure line is not just whitespace
-                            json_data = json.loads(
-                                line.decode("utf-8")
-                            )  # Decode bytes to string then to JSON
-                            message = json_data.get("message", {}).get("content", "")
-                            finish_reason = (
-                                "stop" if json_data.get("done", False) else ""
-                            )
+            # data = {"model": model, "messages": messages}
+            data = {
+                    "input": {
+                        "method_name": "chat",
+                        "input": {
+                        "messages": messages
+                        }
+                    }
+                    }
+            
+            print(f'payload: {data}')
+            endpoint = runpod.Endpoint(self.endpoint)
+            run_request = endpoint.run(data)
+            # Initial check without blocking, useful for quick tasks
+            status = run_request.status()
+            print(f"Initial job status: {status}")
 
-                            yield {
-                                "message": message,
-                                "finish_reason": finish_reason,
-                            }
-                        else:
-                            yield {
-                                "message": "",
-                                "finish_reason": "stop",
-                            }
+            if status != "COMPLETED":
+                # Polling with timeout for long-running tasks
+                output = run_request.output(timeout=60)
+            else:
+                output = run_request.output()
+            print(f"Job output: {output}")
+            for line in output.get("message").get("content"):
+                if line.strip():  # Ensure line is not just whitespace
+                    # json_data = json.loads(
+                    #     line.decode("utf-8")
+                    # )  # Decode bytes to string then to JSON
+                    # output = json_data.get("output")
+                    #updated to format from runpod ollama
+                    message = output.get("message", {}).get("content", "")
+                    finish_reason = (
+                        "stop" if output.get("done", False) else ""
+                    )
+
+                    yield {
+                        "message": message,
+                        "finish_reason": finish_reason,
+                    }
+                else:
+                    yield {
+                        "message": "",
+                        "finish_reason": "stop",
+                    }
+
+#runpod SDK - simple async execution
+            
+#runpod SDK - using asyncio
+            # async with aiohttp.ClientSession() as session:
+            #     endpoint = AsyncioEndpoint(self.endpoint, session)
+            #     job: AsyncioJob = await endpoint.run(data)
+
+            #     # Polling job status
+            #     while True:
+            #         status = await job.status()
+            #         print(f"Current job status: {status}")
+            #         if status == "COMPLETED":
+            #             output = await job.output()
+            #             print("Job output:", output)
+            #             break  # Exit the loop once the job is completed.
+            #         elif status in ["FAILED"]:
+            #             print("Job failed or encountered an error.")
+
+            #             break
+            #         else:
+            #             print("Job in queue or processing. Waiting 3 seconds...")
+            #             await asyncio.sleep(3)  # Wait for 3 seconds before polling again
+                
+#OLD -
+                # async with session.post(url, json=data) as response:
+                #     async for line in response.content:
+                #         if line.strip():  # Ensure line is not just whitespace
+                #             json_data = json.loads(
+                #                 line.decode("utf-8")
+                #             )  # Decode bytes to string then to JSON
+                #             output = json_data.get("output")
+                #             #updated to format from runpod ollama
+                #             message = output.get("message", {}).get("content", "")
+                #             finish_reason = (
+                #                 "stop" if output.get("done", False) else ""
+                #             )
+
+                #             yield {
+                #                 "message": message,
+                #                 "finish_reason": finish_reason,
+                #             }
+                #         else:
+                #             yield {
+                #                 "message": "",
+                #                 "finish_reason": "stop",
+                #             }
 
         except Exception:
             raise

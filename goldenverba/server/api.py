@@ -44,6 +44,7 @@ origins = [
     "http://localhost:3000",
     "https://verba-golden-ragtriever.onrender.com",
     "http://localhost:8000",
+    "https://api.runpod.ai"
 ]
 
 # Add middleware for handling Cross Origin Resource Sharing (CORS)
@@ -284,11 +285,13 @@ async def update_config(payload: ConfigPayload):
 # Receive query and return chunks and query answer
 @app.post("/api/query")
 async def query(payload: QueryPayload):
+    print(payload)
     msg.good(f"Received query: {payload.query}")
     start_time = time.time()  # Start timing
     try:
         chunks, context = manager.retrieve_chunks([payload.query])
-
+        print(chunks)
+        print(context)
         retrieved_chunks = [
             {
                 "text": chunk.text,
