@@ -96,6 +96,8 @@ class OllamaGenerator(Generator):
                         "finish_reason": "stop",
                     }
 
+                return
+
 #runpod SDK - simple async execution
             
 #runpod SDK - using asyncio
