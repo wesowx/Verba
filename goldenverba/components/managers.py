@@ -273,7 +273,7 @@ class GeneratorManager:
             "OllamaGenerator": OllamaGenerator(),
             "Command R+": CohereGenerator(),
         }
-        self.selected_generator: str = "GPT3Generator"
+        self.selected_generator: str = "OllamaGenerator"
 
     async def generate_stream(
         self,
