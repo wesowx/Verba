@@ -290,8 +290,8 @@ async def query(payload: QueryPayload):
     start_time = time.time()  # Start timing
     try:
         chunks, context = manager.retrieve_chunks([payload.query])
-        print(chunks)
-        print(context)
+        print('chunks from retrieve', chunks)
+        print('context from retrieve', context)
         retrieved_chunks = [
             {
                 "text": chunk.text,

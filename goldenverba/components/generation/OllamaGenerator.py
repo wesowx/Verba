@@ -54,7 +54,7 @@ class OllamaGenerator(Generator):
             # data = {"model": model, "messages": messages}
             data = {
                     "input": {
-                        "method_name": "chat",
+                        "method_name": "api/chat",
                         "input": {
                         "messages": messages
                         }

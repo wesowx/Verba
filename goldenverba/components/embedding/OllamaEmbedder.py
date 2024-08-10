@@ -57,7 +57,7 @@ class OllamaEmbedder(Embedder):
             print(f'chunks {chunk}')
             data = {
                     "input": {
-                        "method_name": "embeddings",
+                        "method_name": "api/embeddings",
                         "input": {
                         "prompt": chunk
                         }

@@ -319,6 +319,8 @@ const ChatInterfaceComponent: React.FC<ChatInterfaceComponentProps> = ({
         setIsFetching(true);
         setFetchingStatus("CHUNKS");
 
+        console.log("calling query api to form query")
+
         // Start both API calls in parallel
         const response = await fetch(APIHost + "/api/query", {
           method: "POST",
@@ -341,6 +343,7 @@ const ChatInterfaceComponent: React.FC<ChatInterfaceComponentProps> = ({
           setChunkTime(data.took);
 
           if (data.context) {
+            console.log("context found from query api, proceeding to generate response")
             streamResponses(sendInput, data.context);
             setContext(data.context);
             saveContextToLocalStorage("VERBA_CONTEXT", data.context);
