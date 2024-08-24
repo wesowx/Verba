@@ -48,6 +48,7 @@ class WindowRetriever(Retriever):
             )
 
             if needs_vectorization:
+                print("Inside need_vectorization condition")
                 vector = embedder.vectorize_query(query)
                 query_results = query_results.with_hybrid(
                     query=query,
@@ -57,6 +58,8 @@ class WindowRetriever(Retriever):
                         "text",
                     ],
                 ).do()
+
+                print("query_results", query_results)
 
             else:
                 query_results = query_results.with_hybrid(

@@ -17,7 +17,7 @@ class OllamaGenerator(Generator):
         self.requires_env = ["OLLAMA_URL", "OLLAMA_MODEL"]
         self.streamable = True
         self.context_window = 10000
-        self.endpoint = os.environ.get("RUNPOD_ENDPOINT", "")
+        self.endpoint = os.environ.get("RUNPOD_OLLAMA_GENERATOR_ENDPOINT", "")
         runpod.api_key = os.environ.get("RUNPOD_API_KEY","")
         logging.basicConfig(level=logging.DEBUG)
 

@@ -25,4 +25,6 @@ class ADAEmbedder(Embedder):
         @parameter: batch_size : int - Batch Size of Input
         @returns bool - Bool whether the embedding what successful.
         """
+        print("embedding using ADA embedder")
+
         return self.import_data(documents, client, logging)

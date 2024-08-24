@@ -20,7 +20,7 @@ class OllamaEmbedder(Embedder):
         self.vectorizer = "OLLAMA"
         self.url = os.environ.get("OLLAMA_URL", "")
         self.model = os.environ.get("OLLAMA_MODEL", "")
-        self.endpoint = os.environ.get("RUNPOD_ENDPOINT", "")
+        self.endpoint = os.environ.get("RUNPOD_OLLAMA_EMBEDDER_ENDPOINT", "")
 
         logging.basicConfig(level=logging.DEBUG)
         runpod.api_key = os.environ.get("RUNPOD_API_KEY","")
@@ -39,6 +39,9 @@ class OllamaEmbedder(Embedder):
         @parameter: batch_size : int - Batch Size of Input
         @returns bool - Bool whether the embedding what successful.
         """
+
+        print("embedding using ollama embedder")
+
         for document in tqdm(
             documents, total=len(documents), desc="Vectorizing document chunks"
         ):
