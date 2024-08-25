@@ -41,10 +41,6 @@ const StatusComponent: React.FC<StatusComponentComponentProps> = ({
   }, []);
 
   const fetchStatus = async () => {
-    if (!APIHost) {
-      return;
-    }
-
     try {
       setIsFetching(true);
 

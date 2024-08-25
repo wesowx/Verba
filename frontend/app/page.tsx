@@ -97,7 +97,7 @@ export default function Home() {
   }, []);
 
   const importConfig = async () => {
-    if (!APIHost || !baseSetting) {
+    if (!baseSetting) {
       return;
     }
 
