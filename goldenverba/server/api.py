@@ -40,11 +40,14 @@ setup_managers(manager)
 # FastAPI App
 app = FastAPI()
 
+verba_port = os.environ.get("VERBA_PORT","8000")
+
 origins = [
     "http://localhost:3000",
     "https://verba-golden-ragtriever.onrender.com",
     "http://localhost:8000",
-    "https://api.runpod.ai"
+    "https://api.runpod.ai",
+    f"http://localhost:{verba_port}"
 ]
 
 # Add middleware for handling Cross Origin Resource Sharing (CORS)

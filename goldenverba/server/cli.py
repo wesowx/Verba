@@ -1,8 +1,9 @@
 import click
 import uvicorn
+import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv("../")
 
 @click.group()
 def cli():
@@ -12,7 +13,7 @@ def cli():
 @cli.command()
 @click.option(
     "--port",
-    default=8000,
+    default=os.environ.get("VERBA_PORT",8000),
     help="FastAPI Port",
 )
 @click.option(

@@ -1,3 +1,5 @@
+import { VERBA_PORT } from "./config";
+
 export const detectHost = async (): Promise<string> => {
   const checkUrl = async (url: string): Promise<boolean> => {
     try {
@@ -12,12 +14,12 @@ export const detectHost = async (): Promise<string> => {
     }
   };
 
-  const localUrl = "http://localhost:8000/api/health";
+  const localUrl = `http://localhost:${VERBA_PORT}/api/health`;
   const rootUrl = "/api/health";
 
   const isLocalHealthy = await checkUrl(localUrl);
   if (isLocalHealthy) {
-    return "http://localhost:8000";
+    return `http://localhost:${VERBA_PORT}`;
   }
 
   const isRootHealthy = await checkUrl(rootUrl);

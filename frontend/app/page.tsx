@@ -14,6 +14,7 @@ import { detectHost } from "./api";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { fonts, FontKey } from "./info";
 import PulseLoader from "react-spinners/PulseLoader";
+import { VERBA_PORT } from "./config";
 
 export default function Home() {
   // Page States
@@ -43,7 +44,7 @@ export default function Home() {
     try {
       const host = await detectHost();
       setAPIHost(host);
-      if (host === "" || host === "http://localhost:8000") {
+      if (host === "" || host === `http://localhost:${VERBA_PORT}`) {
         try {
           const health_response = await fetch(host + "/api/health", {
             method: "GET",
