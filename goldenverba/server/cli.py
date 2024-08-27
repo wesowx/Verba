@@ -15,6 +15,7 @@ def cli():
     "--port",
     default=os.environ.get("VERBA_PORT",8000),
     help="FastAPI Port",
+    type=int
 )
 @click.option(
     "--host",
