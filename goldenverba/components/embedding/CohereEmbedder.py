@@ -20,7 +20,7 @@ class CohereEmbedder(Embedding):
         self.name = "Cohere"
         self.description = "Vectorizes documents and queries using Cohere"
         self.url = os.getenv("COHERE_BASE_URL", "https://api.cohere.com/v1")
-        models = get_models(self.url, os.getenv("COHERE_API_KEY", None), "embed")
+        # models = get_models(self.url, os.getenv("COHERE_API_KEY", None), "embed")
 
         self.config["Model"] = InputConfig(
             type="dropdown",

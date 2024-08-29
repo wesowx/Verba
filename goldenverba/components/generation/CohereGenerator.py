@@ -21,14 +21,14 @@ class CohereGenerator(Generator):
         self.url = os.getenv("COHERE_BASE_URL", "https://api.cohere.com/v1")
         self.context_window = 10000
 
-        models = get_models(self.url, os.getenv("COHERE_API_KEY", None), "chat")
+        # models = get_models(self.url, os.getenv("COHERE_API_KEY", None), "chat")
 
-        self.config["Model"] = InputConfig(
-            type="dropdown",
-            value=models[0],
-            description="Select a Cohere Embedding Model",
-            values=models,
-        )
+        # self.config["Model"] = InputConfig(
+        #     type="dropdown",
+        #     value=models[0],
+        #     description="Select a Cohere Embedding Model",
+        #     values=models,
+        # )
 
         if os.getenv("COHERE_API_KEY") is None:
             self.config["API Key"] = InputConfig(
