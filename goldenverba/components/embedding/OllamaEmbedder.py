@@ -2,6 +2,8 @@ import os
 import requests
 from wasabi import msg
 import aiohttp
+import asyncio
+import runpod
 
 from goldenverba.components.interfaces import Embedding
 from goldenverba.components.types import InputConfig
@@ -14,41 +16,86 @@ class OllamaEmbedder(Embedding):
         super().__init__()
         self.name = "Ollama"
         self.url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-        self.description = f"Vectorizes documents and queries using Ollama. If your Ollama instance is not running on {self.url}, you can change the URL by setting the OLLAMA_URL environment variable."
-        models = get_models(self.url)
+        self.endpoint = os.environ.get("RUNPOD_OLLAMA_EMBEDDER_ENDPOINT", "")
+        runpod.api_key = os.environ.get("RUNPOD_API_KEY","")
+
+        self.description = f"Vectorizes documents and queries using Ollama."
+        models = get_models(self.endpoint)
 
         self.config = {
             "Model": InputConfig(
                 type="dropdown",
                 value=models[0],
-                description=f"Select a installed Ollama model from {self.url}. You can change the URL by setting the OLLAMA_URL environment variable. ",
+                description=f"Select a installed Ollama model",
                 values=models,
             ),
         }
 
+    # async def vectorize(self, config: dict, content: list[str]) -> list[float]:
+
+    #     model = config.get("Model").value
+
+    #     data = {"model": model, "input": content}
+
+    #     async with aiohttp.ClientSession() as session:
+    #         async with session.post(self.url + "/api/embed", json=data) as response:
+    #             response.raise_for_status()
+    #             data = await response.json()
+    #             embeddings = data.get("embeddings", [])
+    #             return embeddings
+            
+
     async def vectorize(self, config: dict, content: list[str]) -> list[float]:
+        # input_payload = {"input": {"prompt": "Hello, World!"}}
+        input_payload = {
+            "input": {
+                "method_name": "api/embed",
+                "input": {
+                    "input": content
+                }
+            }
+        }
+        try:
+            endpoint = runpod.Endpoint(self.endpoint)
+            run_request = endpoint.run(input_payload)
 
-        model = config.get("Model").value
+            # Initial check without blocking, useful for quick tasks
+            status = run_request.status()
+            print(f"Initial job status: {status}")
 
-        data = {"model": model, "input": content}
+            if status != "COMPLETED":
+                # Polling with timeout for long-running tasks
+                output = run_request.output(timeout=60)
+            else:
+                output = run_request.output()
+            # print(f"Job output: {output}")
+            # print("embeddings", output.get("embeddings"))
+            return output.get("embeddings", [])
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(self.url + "/api/embed", json=data) as response:
-                response.raise_for_status()
-                data = await response.json()
-                embeddings = data.get("embeddings", [])
-                return embeddings
-
-
-def get_models(url: str):
+def get_models(endpoint: str):
     try:
-        response = requests.get(url + "/api/tags")
-        models = [model.get("name") for model in response.json().get("models")]
-        if len(models) > 0:
-            return models
-        else:
-            msg.info("No Ollama Model detected")
-            return ["No Ollama Model detected"]
+        input_payload = {
+            "input": {
+                "method_name": "api/embed",
+                "input": {
+                    "input": "test"
+                }
+            }
+        }
+        
+        endpoint = runpod.Endpoint(endpoint)
+        response = endpoint.run_sync(input_payload,timeout=120)
+
+        print(response)
+
+        # response = requests.post(url, json=data, headers=headers)
+        # print(response)
+        # print(f'response from ollama embedder: {response}')
+        model = response.get("model", "")
+        print("model", model)
+        return [model]
     except Exception as e:
-        msg.info(f"Couldn't connect to Ollama {url}")
-        return [f"Couldn't connect to Ollama {url}"]
+        msg.info(f"Couldn't connect to Ollama")
+        return [f"Couldn't connect to Ollama"]

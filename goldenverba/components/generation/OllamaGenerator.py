@@ -1,10 +1,11 @@
 import os
 import json
 import aiohttp
+import runpod
+
 from typing import List, Dict, AsyncGenerator
 
 from goldenverba.components.interfaces import Generator
-from goldenverba.components.embedding.OllamaEmbedder import get_models
 from goldenverba.components.types import InputConfig
 
 
@@ -13,11 +14,14 @@ class OllamaGenerator(Generator):
         super().__init__()
         self.name = "Ollama"
         self.url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-        self.description = f"Generate answers using Ollama. If your Ollama instance is not running on {self.url}, you can change the URL by setting the OLLAMA_URL environment variable."
+        self.endpoint = os.environ.get("RUNPOD_OLLAMA_GENERATOR_ENDPOINT", "")
+        runpod.api_key = os.environ.get("RUNPOD_API_KEY","")
+        
+        self.description = f"Generatoror model using generator model deployed in Ollama, check instance for model name"
         self.context_window = 10000
 
         # Fetch available models
-        models = get_models(self.url)
+        models = get_models(self.endpoint)
 
         # Configure the model selection dropdown
         self.config["Model"] = InputConfig(
@@ -34,29 +38,60 @@ class OllamaGenerator(Generator):
         context: str,
         conversation: List[Dict] = [],
     ) -> AsyncGenerator[Dict, None]:
-        model = config.get("Model").value
-        url = f"{self.url}/api/chat"
+
         system_message = config.get("System Message").value
-
-        if not self.url:
-            yield self._error_response("Missing Ollama URL")
-            return
-
         messages = self._prepare_messages(query, context, conversation, system_message)
-        data = {"model": model, "messages": messages}
 
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=data) as response:
-                    async for line in response.content:
-                        if line.strip():
-                            yield self._process_response(line)
-                        else:
-                            yield self._empty_response()
+            data = {
+                    "input": {
+                        "method_name": "api/chat",
+                        "input": {
+                        "messages": messages
+                        }
+                    }
+                    }
+            
+            print(f'payload: {data}')
+            endpoint = runpod.Endpoint(self.endpoint)
+            run_request = endpoint.run(data)
+            # Initial check without blocking, useful for quick tasks
+            status = run_request.status()
+            print(f"Initial job status: {status}")
+
+            if status != "COMPLETED":
+                # Polling with timeout for long-running tasks
+                output = run_request.output(timeout=60)
+            else:
+                output = run_request.output()
+            print(f"Job output: {output}")
+            for line in output.get("message").get("content"):
+                if line.strip():  # Ensure line is not just whitespace
+                    # json_data = json.loads(
+                    #     line.decode("utf-8")
+                    # )  # Decode bytes to string then to JSON
+                    # output = json_data.get("output")
+                    #updated to format from runpod ollama
+                    message = output.get("message", {}).get("content", "")
+                    finish_reason = (
+                        "stop" if output.get("done", False) else ""
+                    )
+
+                    yield {
+                        "message": message,
+                        "finish_reason": finish_reason,
+                    }
+                else:
+                    yield {
+                        "message": "",
+                        "finish_reason": "stop",
+                    }
+
+                return
 
         except Exception as e:
             yield self._error_response(
-                f"Unexpected error, make sure to have {model} installed: {str(e)}"
+                f"Unexpected error, make sure to have ollame model installed: {str(e)}"
             )
 
     def _prepare_messages(
@@ -105,3 +140,36 @@ class OllamaGenerator(Generator):
     def _error_response(message: str) -> Dict:
         """Return an error response."""
         return {"message": message, "finish_reason": "stop"}
+
+
+
+def get_models(endpoint: str):
+    try:
+        input_payload = {
+            "input": {
+                "method_name": "api/generate",
+                "input": {
+                    "prompt": "test"
+                }
+            }
+        }
+        
+        endpoint = runpod.Endpoint(endpoint)
+        response = endpoint.run_sync(input_payload,timeout=120)
+
+        print(response)
+
+        # response = requests.post(url, json=data, headers=headers)
+        # print(response)
+        # print(f'response from ollama embedder: {response}')
+        model = response.get("model", "")
+        print("model", model)
+        return [model]
+        if len(models) > 0:
+            return models
+        else:
+            msg.info("No Ollama Model detected")
+            return ["No Ollama Model detected"]
+    except Exception as e:
+        msg.info(f"Couldn't connect to Ollama")
+        return [f"Couldn't connect to Ollama"]

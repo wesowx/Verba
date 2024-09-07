@@ -43,6 +43,7 @@ setup(
         "markdownify==0.13.1",
         "aiofiles==24.1.0",
         "beautifulsoup4==4.12.3",
+        "runpod==1.7.0"
     ],
     extras_require={
         "dev": ["pytest", "wheel", "twine", "black>=23.7.0", "setuptools"],
