@@ -9,6 +9,8 @@ class Chunk:
         chunk_id: str = "",
         start_i: int = 0,
         end_i: int = 0,
+        labels: list[str] = [],
+
     ):
         self.content = content
         self.title = ""
