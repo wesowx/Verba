@@ -2,6 +2,7 @@ import os
 import json
 import aiohttp
 import runpod
+from wasabi import msg
 
 from typing import List, Dict, AsyncGenerator
 
@@ -156,20 +157,9 @@ def get_models(endpoint: str):
         
         endpoint = runpod.Endpoint(endpoint)
         response = endpoint.run_sync(input_payload,timeout=120)
-
-        print(response)
-
-        # response = requests.post(url, json=data, headers=headers)
-        # print(response)
-        # print(f'response from ollama embedder: {response}')
         model = response.get("model", "")
         print("model", model)
         return [model]
-        if len(models) > 0:
-            return models
-        else:
-            msg.info("No Ollama Model detected")
-            return ["No Ollama Model detected"]
     except Exception as e:
         msg.info(f"Couldn't connect to Ollama")
         return [f"Couldn't connect to Ollama"]

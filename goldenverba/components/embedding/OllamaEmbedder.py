@@ -1,8 +1,6 @@
 import os
 import requests
 from wasabi import msg
-import aiohttp
-import asyncio
 import runpod
 
 from goldenverba.components.interfaces import Embedding
@@ -87,12 +85,6 @@ def get_models(endpoint: str):
         
         endpoint = runpod.Endpoint(endpoint)
         response = endpoint.run_sync(input_payload,timeout=120)
-
-        print(response)
-
-        # response = requests.post(url, json=data, headers=headers)
-        # print(response)
-        # print(f'response from ollama embedder: {response}')
         model = response.get("model", "")
         print("model", model)
         return [model]
