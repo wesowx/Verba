@@ -22,12 +22,12 @@ class CohereEmbedder(Embedding):
         self.url = os.getenv("COHERE_BASE_URL", "https://api.cohere.com/v1")
         # models = get_models(self.url, os.getenv("COHERE_API_KEY", None), "embed")
 
-        self.config["Model"] = InputConfig(
-            type="dropdown",
-            value=models[0],
-            description="Select a Cohere Embedding Model",
-            values=models,
-        )
+        # self.config["Model"] = InputConfig(
+        #     type="dropdown",
+        #     value=models[0],
+        #     description="Select a Cohere Embedding Model",
+        #     values=models,
+        # )
 
         if os.getenv("COHERE_API_KEY") is None:
             self.config["API Key"] = InputConfig(

@@ -741,7 +741,6 @@ class WeaviateManager:
                     vector=vector,
                     alpha=0.5,
                     auto_limit=limit,
-                    filters=Filter.by_property("labels").contains_any(["table"]),
                     return_metadata=MetadataQuery(score=True, explain_score=False),
                     filters=apply_filters,
                 )
@@ -751,7 +750,6 @@ class WeaviateManager:
                     vector=vector,
                     alpha=0.5,
                     limit=limit,
-                    filters=Filter.by_property("labels").contains_any(["table"]),
                     return_metadata=MetadataQuery(score=True, explain_score=False),
                     filters=apply_filters,
                 )
