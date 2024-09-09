@@ -165,6 +165,7 @@ class WeaviateManager:
     async def connect_to_docker(self, w_url):
         msg.info(f"Connecting to Weaviate Docker")
         return weaviate.use_async_with_local(
+            host=w_url,
             additional_config=AdditionalConfig(
                 timeout=Timeout(init=60, query=300, insert=300)
             ),
@@ -192,7 +193,9 @@ class WeaviateManager:
 
                 client = await self.connect_to_cluster(weaviateURL, weaviateAPIKey)
             elif deployment == "Docker":
-                client = await self.connect_to_docker("weaviate")
+                #check if verba running in docker or regular os
+                verba_host = "weaviate" if os.path.exists('/.dockerenv') else "localhost"
+                client = await self.connect_to_docker(verba_host)
             elif deployment == "Local":
                 client = await self.connect_to_embedded()
 
