@@ -73,8 +73,7 @@ class UnstructuredReader(Reader):
             raise ValueError(f"Invalid strategy: {strategy}")
 
         headers = {
-            "accept": "application/json",
-            "unstructured-api-key": token,
+            "accept": "application/json"
         }
 
         msg.info(f"Loading {fileConfig.filename}")
