@@ -45,7 +45,7 @@ class UnstructuredReader(Reader):
         if os.getenv("UNSTRUCTURED_API_URL") is None:
             self.config["API URL"] = InputConfig(
                 type="text",
-                value="https://api.unstructured.io/general/v0/general",
+                value="http://localhost:9500/general/v0/general",
                 description="Set the base URL to the Unstructured API or set it as an environment variable `UNSTRUCTURED_API_URL`",
                 values=[],
             )

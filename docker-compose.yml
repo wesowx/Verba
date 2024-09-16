@@ -52,6 +52,15 @@ services:
       ENABLE_MODULES: 'text2vec-openai, generative-openai, qna-openai, text2vec-cohere'
       CLUSTER_HOSTNAME: 'node1'
 
+  unstructured-api:
+    image: downloads.unstructured.io/unstructured-io/unstructured-api:latest
+    ports:
+      - 9500:9500
+    environment:
+      - PORT=9500
+      - HOST=0.0.0.0
+    command: ["--scheme", "http"]
+    restart: unless-stopped 
 volumes:
   weaviate_data: {}
 ...
